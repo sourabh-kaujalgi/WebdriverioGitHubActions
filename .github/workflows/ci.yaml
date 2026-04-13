@@ -2,42 +2,48 @@ name: WDIO Tests with Allure
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Setup Node
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 18
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm install
 
-      - name: Install Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser
+      # 4. Install Chrome (reliable way)
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
 
-      - name: Run WDIO Tests
+      # 5. Run WDIO tests (headless)
+      - name: Run tests
         run: npx wdio run wdio.conf.js
 
-      - name: Generate Allure Report
-        run: |
-          npm install -g allure-commandline --save-dev
-          allure generate allure-results --clean -o allure-report
+      # 6. Install Allure CLI
+      - name: Install Allure
+        run: npm install -g allure-commandline --save-dev
 
+      # 7. Generate Allure report
+      - name: Generate Allure Report
+        run: allure generate allure-results --clean -o allure-report
+
+      # 8. Upload report artifact
       - name: Upload Allure Report
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          
           path: allure-report
